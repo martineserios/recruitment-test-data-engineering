@@ -1,0 +1,35 @@
+version: '3'
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: mydb
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  python:
+    build: .
+    volumes:
+      - ../data:/data
+      - .:/app
+    depends_on:
+      - db
+
+  ingest:
+    build: .
+    command: python /app/ingest_data.py
+    volumes:
+      - ../data:/data
+      - .:/app
+    depends_on:
+      - db
+
+  summary:
+    build: .
+    command: python /app/generate_summary.py
+    volumes:
+      - ../data:/data
+      - .:/app
+    depends_on:
+      - db
